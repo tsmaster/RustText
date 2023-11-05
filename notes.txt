@@ -1,0 +1,35 @@
+the font tools are in Python in Tools
+
+making a demo for Rust apps in Demo_1
+
+cargo new demo_1 --bin
+
+cd demo_1
+
+cargo build
+
+cargo run
+
+./target/debug/demo_1
+
+cargo add macroquad
+
+
+
+
+
+-- note that once_cell is not working, it's an unstable feature with my version of rustc
+
+#![feature(once_cell)]
+
+-- switch to nightly:
+rustup default nightly
+-- oh, but the nightly version says that once_cell is actually stable
+rustup default stable
+-- oh, but I need to update
+rustup update
+-- rustc 1.73.0
+-- rustc 1.75.0-nightly
+
+-- bleh, drivers need a reboot
+
