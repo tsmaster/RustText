@@ -1,8 +1,11 @@
+// Demo 1 main.rs
+
 use macroquad::prelude::*;
 use quad_snd::{AudioContext, Sound};
 
-mod panel;
-mod font;
+use demo_1::panel::draw_panel;
+use demo_1::panel::make_panel;
+use demo_1::font::make_font;
 
 pub struct FontRecord {
     pub cell_width: u32,
@@ -106,15 +109,15 @@ async fn main() {
 
     let mut audio_ctx = AudioContext::new();
     
-    let beep_sound = Sound::load(&mut audio_ctx, include_bytes!("../assets/beep.wav"));
+    let beep_sound = Sound::load(&mut audio_ctx, include_bytes!("../../assets/beep.wav"));
     
     beep_sound.play(&mut audio_ctx, Default::default());
 
-    let a2_font_obj = font::make_font();
+    let a2_font_obj = make_font();
     
-    let my_panel = panel::make_panel(100.0, 100.0,
-                                     Some(BLACK),
-                                     a2_font_obj, 10, 10);
+    let my_panel = make_panel(100.0, 100.0,
+                              Some(BLACK),
+                              a2_font_obj, 10, 10);
 
     loop {
         clear_background(RED);
@@ -147,7 +150,7 @@ async fn main() {
 
         draw_box(BLACK, 10.0, 180.0, 10, 4, &a2_font, &a2_font_record);
 
-        panel::draw_panel(&my_panel);
+        draw_panel(&my_panel);
         next_frame().await
     }
 }

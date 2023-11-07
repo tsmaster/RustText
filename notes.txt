@@ -33,3 +33,31 @@ rustup update
 
 -- bleh, drivers need a reboot
 
+
+---
+
+-- moved the demo to examples/demo_1/main.rs
+
+cargo run --example demo_1
+
+-- Next up: make a Panel struct, maybe a Panel trait, that has putchar()-like API
+   and can draw itself in a single draw() call
+
+
+---
+-- made a WASM build by
+cargo build --target wasm32-unknown-unknown --example demo_2
+cp target/wasm32-unknown-unknown/debug/examples/demo_2.wasm Web/demo2.wasm
+cp assets/* Web/assets/
+
+--then grabbed index.html from the macroquad github page, copied into Web
+
+-- then tested locally
+
+basic-http-server Web/
+
+-- then copied Web folder to S3
+
+
+
+

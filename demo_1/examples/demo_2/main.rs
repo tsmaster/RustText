@@ -1,8 +1,12 @@
+// Demo 2 main.rs
+
 use macroquad::prelude::*;
 use quad_snd::{AudioContext, Sound};
 
-mod panel;
-mod font;
+use demo_1::panel::*;
+//use demo_1::panel::draw_panel;
+//use demo_1::panel::make_panel;
+use demo_1::font::make_font;
 
 pub struct FontRecord {
     pub cell_width: u32,
@@ -88,66 +92,49 @@ fn draw_box(color: Color, x: f32, y: f32, width: u8, height: u8,
         
 }
 
-#[macroquad::main("Demo1")]
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Demo2: panel".to_owned(),
+        window_width: 1024,
+        window_height: 768,
+        fullscreen: false,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
 async fn main() {
     println!("Hello, world!");
 
     let a2_font: Texture2D = load_texture("assets/40col.png").await.unwrap();
-    let nes_font: Texture2D = load_texture("assets/nes.png").await.unwrap();
 
     let a2_font_record = FontRecord{cell_width: 6,
                                     cell_height: 8};
-    let nes_font_record = FontRecord{cell_width: 8,
-                                     cell_height: 8};
 
-    //texture.set_filter(FilterMode::Linear);
     a2_font.set_filter(FilterMode::Nearest);
-    nes_font.set_filter(FilterMode::Nearest);
 
     let mut audio_ctx = AudioContext::new();
     
-    let beep_sound = Sound::load(&mut audio_ctx, include_bytes!("../assets/beep.wav"));
+    let beep_sound = Sound::load(&mut audio_ctx, include_bytes!("../../assets/beep.wav"));
     
     beep_sound.play(&mut audio_ctx, Default::default());
 
-    let a2_font_obj = font::make_font();
+    let a2_font_obj = make_font(&a2_font, 6, 8);
     
-    let my_panel = panel::make_panel(100.0, 100.0,
-                                     Some(BLACK),
-                                     a2_font_obj, 10, 10);
+    let mut my_panel = make_panel(40.0, 40.0,
+                                  GREEN,
+                                  Some(BLACK),
+                                  a2_font_obj, 16, 16);
+
+    panel_set_cursor_pos(&mut my_panel, 0,0);
+    panel_write_string(&mut my_panel, "Hello Panel");
+
+    let bg_color = Color{r: 0.5, g: 0.7, b: 0.5, a: 1.0};
 
     loop {
-        clear_background(RED);
+        clear_background(bg_color);
 
-        draw_line(40.0, 40.0, 100.0, 200.0, 15.0, BLUE);
-        draw_rectangle(screen_width() / 2.0 - 60.0, 100.0, 120.0, 60.0, GREEN);
-        draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
-        draw_text("HELLO MACRO", 20.0, 20.0, 20.0, DARKGRAY);
-
-        draw_texture(&a2_font, 0.0, 0.0, WHITE);
-
-        draw_texture_ex(
-            &a2_font,
-            0.0,
-            100.0,
-            GREEN,
-            DrawTextureParams {
-                //dest_size: Some(vec2(screen_width(), screen_height())),
-                source: Some(Rect{x: 0., y: 0., w: 10., h:10.}),
-                dest_size: Some(vec2(10.0, 10.0)),
-                ..Default::default()
-            },
-        );
-
-        draw_char('H', BLUE, 0.0, 120.0, &a2_font, &a2_font_record);
-
-        draw_string("Hello, World!", GREEN, 0.0, 140.0, &a2_font, &a2_font_record);
-
-        draw_string("Hello, NES World!", BLACK, 0.0, 160.0, &nes_font, &nes_font_record);
-
-        draw_box(BLACK, 10.0, 180.0, 10, 4, &a2_font, &a2_font_record);
-
-        panel::draw_panel(&my_panel);
+        draw_panel(&my_panel);
         next_frame().await
     }
 }
