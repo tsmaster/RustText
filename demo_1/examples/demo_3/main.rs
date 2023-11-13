@@ -83,24 +83,28 @@ impl <'a> MenuData<'a>{
         self.cell_width = max_width;
     }
 
-    fn draw(&self, x: u32, y: u32, texture: &Texture2D, font_record: &FontRecord) {
+    fn draw(&self, x: u32, y: u32, scale: u32,
+            texture: &Texture2D, font_record: &FontRecord) {
         draw_rectangle(x as f32, y as f32,
-                       (self.cell_width * 6) as f32,
-                       (self.child_keys.len() * 8) as f32,
+                       (self.cell_width as u32 * 6 * scale) as f32,
+                       (self.child_keys.len() as u32 * 8 * scale) as f32,
                        BLACK);
-
-        // TODO use scale
 
         // TODO push font info into font object
 
         // TODO use is_active to gray out non-top menu panels
 
         // TODO add menu colors
+
+        // TODO draw box
+
+        // TODO move all of this into a panel
         
         for i in 0 .. self.child_keys.len() {
             let cname = self.child_keys[i];
             draw_string(cname, WHITE,
-                        x as f32, (y + (8*i) as u32) as f32,
+                        x as f32, (y + (8 * i as u32 * scale)) as f32,
+                        2,
                         texture, font_record);
         }
     }
@@ -127,15 +131,17 @@ impl <'a> MenuData<'a>{
 pub struct MenuManager<'a> {
     menu_stack: Vec<&'a mut MenuData<'a>>,
     texture: &'a Texture2D,
-    font_record: &'a FontRecord
+    font_record: &'a FontRecord,
+    font_scale: u32,
 }
 
 impl <'a> MenuManager<'a> {
-    fn new(texture: &'a Texture2D, font_record: &'a FontRecord) -> MenuManager<'a> {
+    fn new(scale: u32, texture: &'a Texture2D, font_record: &'a FontRecord) -> MenuManager<'a> {
         let mm = MenuManager {
             menu_stack: vec!(),
             texture: texture,
             font_record: font_record,
+            font_scale: scale,
         };
         mm
     }
@@ -153,14 +159,15 @@ impl <'a> MenuManager<'a> {
         let y_spacing = 8;
         
         for m in self.menu_stack.iter() {
-            m.draw(tx, ty, self.texture, self.font_record);
+            m.draw(tx, ty, self.font_scale, self.texture, self.font_record);
             tx = tx + x_spacing;
             ty = ty + y_spacing;
         }
     }
 }
 
-fn draw_char(c: char, color: Color, x: f32, y: f32, texture: &Texture2D, font_record: &FontRecord)
+fn draw_char(c: char, color: Color, x: f32, y: f32, scale: u32,
+             texture: &Texture2D, font_record: &FontRecord)
 {
     let char_ascii = c as u32;
 
@@ -178,65 +185,77 @@ fn draw_char(c: char, color: Color, x: f32, y: f32, texture: &Texture2D, font_re
             source: Some(Rect{x: tx, y: ty,
                               w: font_record.cell_width as f32,
                               h: font_record.cell_height as f32}),
+            dest_size: Some(Vec2{
+                x: (font_record.cell_width * scale) as f32,
+                y: (font_record.cell_height * scale) as f32}),
             ..Default::default()
         }
     );
 }
 
-fn draw_string(s: &str, color: Color, x: f32, y: f32, texture: &Texture2D, font_record: &FontRecord)
+fn draw_string(s: &str, color: Color, x: f32, y: f32,
+               scale: u32, texture: &Texture2D, font_record: &FontRecord)
 {
     let mut mx = x;
     
     for c in s.chars() {
-        draw_char(c, color, mx, y, &texture, &font_record);
-        mx = mx + font_record.cell_width as f32;
+        draw_char(c, color, mx, y, scale, &texture, &font_record);
+        mx = mx + (font_record.cell_width * scale) as f32;
     }
 }
 
-fn draw_box(color: Color, x: f32, y: f32, width: u8, height: u8,
+fn draw_box(color: Color, x: f32, y: f32,
+            width: u8, height: u8,
+            scale: u32,
             texture: &Texture2D, font_record: &FontRecord)
 {
     for cx in 1..(width-1) {
         draw_char('-', color,
                   x + cx as f32 * font_record.cell_width as f32,
                   y,
+                  scale,
                   &texture, &font_record);
         draw_char('-', color,
                   x + cx as f32 * font_record.cell_width as f32,
                   y + (height - 1) as f32 * font_record.cell_height as f32,
+                  scale,
                   &texture, &font_record);
     }
     for cy in 1..(height-1) {
         draw_char('|', color,
                   x,
                   y + cy as f32 * font_record.cell_height as f32,
+                  scale,
                   &texture, &font_record);
         draw_char('|', color,
                   x + (width - 1) as f32 * font_record.cell_width as f32,
                   y + cy as f32 * font_record.cell_height as f32,
+                  scale,
                   &texture, &font_record);
 
     }
     draw_char('+', color,
               x, y,
+              scale,
               &texture, &font_record);
                   
     draw_char('+', color,
               x + (width - 1) as f32 * font_record.cell_width as f32,
               y,
+              scale,
               &texture, &font_record);
                   
     draw_char('+', color,
               x,
               y + (height - 1) as f32 * font_record.cell_height as f32,
+              scale,
               &texture, &font_record);
                   
     draw_char('+', color,
               x + (width - 1) as f32 * font_record.cell_width as f32,
               y + (height - 1) as f32 * font_record.cell_height as f32,
+              scale,
               &texture, &font_record);
-                  
-        
 }
 
 
@@ -337,7 +356,7 @@ async fn main() {
 
     root_menu_obj.build();
 
-    let mut my_menu_mgr = MenuManager::new(&a2_font, &a2_font_record);
+    let mut my_menu_mgr = MenuManager::new(2, &a2_font, &a2_font_record);
 
     my_menu_mgr.open(&mut root_menu_obj);
 
