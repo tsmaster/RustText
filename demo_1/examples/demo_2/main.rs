@@ -92,6 +92,24 @@ fn draw_box(color: Color, x: f32, y: f32, width: u8, height: u8,
         
 }
 
+
+fn write_box(panel: &mut Panel, x: u32, y: u32, width: u32, height: u32)
+{
+    for cx in 1..(width-1) {
+        panel_put_char(panel, '-', x + cx, y);
+        panel_put_char(panel, '-', x + cx, y + (height - 1));
+    }
+    for cy in 1..(height-1) {
+        panel_put_char(panel, '|', x, y + cy);
+        panel_put_char(panel, '|', x + (width - 1), y + cy);
+    }
+    panel_put_char(panel, '+', x, y);
+    panel_put_char(panel, '+', x + (width - 1), y);
+    panel_put_char(panel, '+', x, y + (height - 1));
+    panel_put_char(panel, '+', x + (width - 1), y + (height - 1));
+}
+
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Demo2: panel".to_owned(),
@@ -124,10 +142,22 @@ async fn main() {
     let mut my_panel = make_panel(40.0, 40.0,
                                   GREEN,
                                   Some(BLACK),
+                                  2,
                                   a2_font_obj, 16, 16);
 
-    panel_set_cursor_pos(&mut my_panel, 0,0);
-    panel_write_string(&mut my_panel, "Hello Panel");
+    write_box(&mut my_panel, 0, 0, 16, 16);
+
+    panel_set_cursor_pos(&mut my_panel, 1, 1);
+    panel_write_string(&mut my_panel, "Hello, Panel!");
+
+    let mut panel_2 = make_panel(200.0, 64.0,
+                                 RED,
+                                 Some(BLACK),
+                                 2,
+                                 a2_font_obj, 12, 12);
+    write_box(&mut panel_2, 0, 0, 12, 12);
+    panel_set_cursor_pos(&mut panel_2, 1, 1);
+    panel_write_string(&mut panel_2, "panel 2");
 
     let bg_color = Color{r: 0.5, g: 0.7, b: 0.5, a: 1.0};
 
@@ -135,6 +165,7 @@ async fn main() {
         clear_background(bg_color);
 
         draw_panel(&my_panel);
+        draw_panel(&panel_2);
         next_frame().await
     }
 }

@@ -7,9 +7,11 @@ pub struct Panel<'a> {
     pub font_color: Color,
     pub erase_color: Option<Color>,
     pub font: BdgFont<'a>,
-    pub char_width: u8,
-    pub char_height: u8,
+    pub char_width: u32,
+    pub char_height: u32,
     pub chars: Vec<Vec<char>>,
+
+    pub pixel_scale: u32,
 
     pub screen_width: f32,
     pub screen_height: f32,
@@ -19,7 +21,7 @@ pub struct Panel<'a> {
 }
 
 
-fn draw_char(c: char, color: Color, x: f32, y: f32, font: &BdgFont)
+fn draw_char(c: char, color: Color, x: f32, y: f32, scale: u32, font: &BdgFont)
 {
     let char_ascii = c as u32;
 
@@ -37,6 +39,9 @@ fn draw_char(c: char, color: Color, x: f32, y: f32, font: &BdgFont)
             source: Some(Rect{x: tx, y: ty,
                               w: font.width as f32,
                               h: font.height as f32}),
+            dest_size: Some(Vec2{
+                x: (font.width * scale) as f32,
+                y: (font.height * scale) as f32}),
             ..Default::default()
         }
     );
@@ -46,9 +51,11 @@ fn draw_char(c: char, color: Color, x: f32, y: f32, font: &BdgFont)
 
 pub fn make_panel(sx: f32, sy: f32,
                   font_color: Color,
-                  erase_color: Option<Color>, font: BdgFont, w: u8, h: u8) -> Panel
+                  erase_color: Option<Color>,
+                  scale: u32,
+                  font: BdgFont, w: u32, h: u32) -> Panel
 {
-    let char_row = vec![' '; w.into()];
+    let char_row = vec![' '; w as usize];
     let mut char_vec = vec![];
     for _i in 0..h
     {
@@ -59,12 +66,13 @@ pub fn make_panel(sx: f32, sy: f32,
                   screen_y: sy,
                   font_color: font_color,
                   erase_color: erase_color,
+                  pixel_scale: scale,
                   font: font,
                   char_width: w,
                   char_height: h,
                   chars: char_vec,
-                  screen_width: (w * font.width) as f32,
-                  screen_height: (w * font.height) as f32,
+                  screen_width: (w * font.width as u32 * scale) as f32,
+                  screen_height: (w * font.height as u32 * scale) as f32,
 
                   cursor_x: 0,
                   cursor_y: 0,
@@ -91,8 +99,9 @@ pub fn draw_panel(panel: &Panel)
         {
             let c = panel.chars[y as usize][x as usize];
             draw_char(c, panel.font_color,
-                      panel.screen_x + (panel.font.width * x) as f32,
-                      panel.screen_y + (panel.font.height * y) as f32,
+                      panel.screen_x + (panel.font.width * x * panel.pixel_scale) as f32,
+                      panel.screen_y + (panel.font.height * y * panel.pixel_scale) as f32,
+                      panel.pixel_scale,
                       &panel.font);
         }
     }
@@ -111,4 +120,9 @@ pub fn panel_write_string(panel: &mut Panel, s: &str)
         panel.chars[panel.cursor_y as usize][panel.cursor_x as usize] = c;
         panel.cursor_x += 1;
     }
+}
+
+pub fn panel_put_char(panel: &mut Panel, c: char, x: u32, y: u32)
+{
+    panel.chars[y as usize][x as usize] = c;
 }
