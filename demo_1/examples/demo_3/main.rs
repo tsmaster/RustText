@@ -73,6 +73,7 @@ impl <'a> MenuData<'a>{
     fn add_child(&mut self, child: MenuData<'a>) {
         self.child_keys.push(child.name);
         self.child_menus.insert(child.name, child);
+        self.is_leaf = false;
     }
 
     fn set_enabled(&mut self, enabled: bool) {
@@ -101,9 +102,17 @@ impl <'a> MenuData<'a>{
     fn draw(&self, x: u32, y: u32, scale: u32,
             texture: &Texture2D, font_record: &FontRecord) {
         draw_rectangle(x as f32, y as f32,
-                       (self.cell_width as u32 * 6 * scale) as f32,
+                       ((self.cell_width as u32 + 5) * 6 * scale) as f32,
                        (self.child_keys.len() as u32 * 8 * scale) as f32,
                        BLACK);
+
+        draw_box(WHITE, x as f32, y as f32,
+                 self.cell_width as u8 + 5,
+                 self.child_keys.len() as u8 + 2,
+                 scale,
+                 texture,
+                 font_record);
+        
 
         // TODO push font info into font object
 
@@ -111,17 +120,26 @@ impl <'a> MenuData<'a>{
 
         // TODO add menu colors
 
-        // TODO draw box
-
         // TODO move all of this into a panel
         
         for i in 0 .. self.child_keys.len() {
             let cname = self.child_keys[i];
             draw_string(cname, WHITE,
-                        x as f32, (y + (8 * i as u32 * scale)) as f32,
+                        x as f32 + (6 * 2) as f32 * scale as f32,
+                        (y + (8 * (i + 1) as u32 * scale)) as f32,
                         2,
                         texture, font_record);
+
+            let cmo = &self.child_menus[cname];
+            if !cmo.is_leaf {
+                draw_char('>', RED,
+                          x as f32 + (6 * (self.cell_width + 3)) as f32 * scale as f32,
+                          (y + (8 * (i + 1) as u32 * scale)) as f32,
+                          2,
+                          texture, font_record);                          
+            }
         }
+
     }
 
     fn new(new_name: &'a str, id: i32) -> MenuData<'a> {
@@ -226,25 +244,25 @@ fn draw_box(color: Color, x: f32, y: f32,
 {
     for cx in 1..(width-1) {
         draw_char('-', color,
-                  x + cx as f32 * font_record.cell_width as f32,
+                  x + cx as f32 * font_record.cell_width as f32 * scale as f32,
                   y,
                   scale,
                   &texture, &font_record);
         draw_char('-', color,
-                  x + cx as f32 * font_record.cell_width as f32,
-                  y + (height - 1) as f32 * font_record.cell_height as f32,
+                  x + cx as f32 * font_record.cell_width as f32 * scale as f32,
+                  y + (height - 1) as f32 * font_record.cell_height as f32 * scale as f32,
                   scale,
                   &texture, &font_record);
     }
     for cy in 1..(height-1) {
         draw_char('|', color,
                   x,
-                  y + cy as f32 * font_record.cell_height as f32,
+                  y + cy as f32 * font_record.cell_height as f32 * scale as f32,
                   scale,
                   &texture, &font_record);
         draw_char('|', color,
-                  x + (width - 1) as f32 * font_record.cell_width as f32,
-                  y + cy as f32 * font_record.cell_height as f32,
+                  x + (width - 1) as f32 * font_record.cell_width as f32 * scale as f32,
+                  y + cy as f32 * font_record.cell_height as f32 * scale as f32,
                   scale,
                   &texture, &font_record);
 
@@ -255,20 +273,20 @@ fn draw_box(color: Color, x: f32, y: f32,
               &texture, &font_record);
                   
     draw_char('+', color,
-              x + (width - 1) as f32 * font_record.cell_width as f32,
+              x + (width - 1) as f32 * font_record.cell_width as f32 * scale as f32,
               y,
               scale,
               &texture, &font_record);
                   
     draw_char('+', color,
               x,
-              y + (height - 1) as f32 * font_record.cell_height as f32,
+              y + (height - 1) as f32 * font_record.cell_height as f32 * scale as f32,
               scale,
               &texture, &font_record);
                   
     draw_char('+', color,
-              x + (width - 1) as f32 * font_record.cell_width as f32,
-              y + (height - 1) as f32 * font_record.cell_height as f32,
+              x + (width - 1) as f32 * font_record.cell_width as f32 * scale as f32,
+              y + (height - 1) as f32 * font_record.cell_height as f32 * scale as f32,
               scale,
               &texture, &font_record);
 }
