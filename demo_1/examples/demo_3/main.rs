@@ -55,6 +55,21 @@ impl <'a> MenuData<'a>{
         self.child_menus.get_mut(child_name).unwrap()
     }
 
+    fn get_mut_child_by_id(&mut self, child_id: i32) -> Result<&mut MenuData<'a>, String> {
+        let scm = &mut self.child_menus;
+        
+        for c in self.child_keys.iter() {
+            let cm = scm.get(c).unwrap();
+            if cm.id == child_id {
+                let mcm = scm.get_mut(c).unwrap();
+                return Ok(mcm);
+            }
+        }
+
+        let msg = format!("ID {} not found", child_id);
+        Err(msg.to_string())
+    }
+
     fn add_child(&mut self, child: MenuData<'a>) {
         self.child_keys.push(child.name);
         self.child_menus.insert(child.name, child);
@@ -109,7 +124,7 @@ impl <'a> MenuData<'a>{
         }
     }
 
-    fn new(new_name: &'a str) -> MenuData<'a> {
+    fn new(new_name: &'a str, id: i32) -> MenuData<'a> {
         let md = MenuData {
             name: new_name,
             viz_width: 0,
@@ -118,7 +133,7 @@ impl <'a> MenuData<'a>{
             child_menus: HashMap::new(),
             is_enabled: true,
             is_leaf: true,
-            id: 0,
+            id: id,
             cell_width: 0,
             cursor_x: 0,
             cursor_y: 0,
@@ -328,31 +343,79 @@ async fn main() {
      */
     let bg_color = Color{r: 0.5, g: 0.7, b: 0.5, a: 1.0};
 
-    let mut root_menu_obj = MenuData::new("root");
-    root_menu_obj.add_child(MenuData::new("settings"));
-    root_menu_obj.add_child(MenuData::new("demos"));
-    root_menu_obj.add_child(MenuData::new("games"));
+    let mut root_menu_obj = MenuData::new("root", 0);
+    root_menu_obj.add_child(MenuData::new("settings", 101));
+    root_menu_obj.add_child(MenuData::new("demos", 102));
+    root_menu_obj.add_child(MenuData::new("games", 103));
 
     root_menu_obj.set_size(1, 4);
 
     let settings = root_menu_obj.get_mut_child("settings");
-    settings.add_child(MenuData::new("font color"));
-    settings.add_child(MenuData::new("background color"));
-    settings.add_child(MenuData::new("overscan color"));
+    settings.add_child(MenuData::new("font color", 1001));
+    settings.add_child(MenuData::new("background color", 1002));
+    settings.add_child(MenuData::new("overscan color", 1003));
     
     let demos = root_menu_obj.get_mut_child("demos");
-    demos.add_child(MenuData::new("mandelbrot"));
-    demos.add_child(MenuData::new("word wrap"));
-    demos.add_child(MenuData::new("matrix tetris"));
-    demos.add_child(MenuData::new("pentominoes"));
-    demos.add_child(MenuData::new("plinko"));
+    demos.add_child(MenuData::new("mandelbrot", 2001));
+    demos.add_child(MenuData::new("word wrap", 2002));
+    demos.add_child(MenuData::new("matrix tetris", 2003));
+    demos.add_child(MenuData::new("pentominoes", 2004));
+    demos.add_child(MenuData::new("plinko", 2005));
     demos.set_size(1,4);
 
     let games = root_menu_obj.get_mut_child("games");
-    games.add_child(MenuData::new("guess a number"));
-    games.add_child(MenuData::new("mancala"));
-    games.add_child(MenuData::new("checkers"));
-    games.add_child(MenuData::new("chess"));
+    games.add_child(MenuData::new("guess a number", 3001));
+    games.add_child(MenuData::new("mancala", 3002));
+    games.add_child(MenuData::new("checkers", 3003));
+    games.add_child(MenuData::new("chess", 3004));
+    games.add_child(MenuData::new("snake", 3005));    
+
+    games.add_child(MenuData::new("BASIC Computer Games", 3006));
+    games.add_child(MenuData::new("More BASIC Computer Games", 3007));
+    games.add_child(MenuData::new("Big Computer Games", 3008));
+    games.add_child(MenuData::new("Computer Adventures", 3009));
+
+    let bcg = games.get_mut_child_by_id(3006).unwrap();
+
+    bcg.add_child(MenuData::new("Acey Deucey", 30051));
+    bcg.add_child(MenuData::new("Amazing",     30052));
+    bcg.add_child(MenuData::new("Animal",      30053));
+    bcg.add_child(MenuData::new("Awari",       30054));
+    bcg.add_child(MenuData::new("Bagels",      30055));
+    bcg.add_child(MenuData::new("Banner",      30056));
+    bcg.add_child(MenuData::new("Basketball",  30057));
+    bcg.add_child(MenuData::new("Batnum",      30058));
+    bcg.add_child(MenuData::new("Battle",      30059));
+    bcg.add_child(MenuData::new("Blackjack",   30060));
+    bcg.add_child(MenuData::new("Bombardment", 30061));
+    bcg.add_child(MenuData::new("Bombs Away",  30062));
+    bcg.add_child(MenuData::new("Bounce",      30063));
+    bcg.add_child(MenuData::new("Bowling",     30064));
+    bcg.add_child(MenuData::new("Boxing",      30065));
+    bcg.add_child(MenuData::new("Bug",         30066));
+    bcg.add_child(MenuData::new("Bullfight",   30067));
+    bcg.add_child(MenuData::new("Bullseye",    30068));
+    bcg.add_child(MenuData::new("Bunny",       30069));
+
+    let mbcg = games.get_mut_child_by_id(3007).unwrap();
+
+    mbcg.add_child(MenuData::new("Artillery-3",     31001));
+    mbcg.add_child(MenuData::new("Baccarat",        31002));
+    mbcg.add_child(MenuData::new("Bible Quiz",      31003));
+    mbcg.add_child(MenuData::new("Big 6",           31004));
+    mbcg.add_child(MenuData::new("Binary",          31005));
+    mbcg.add_child(MenuData::new("Black Box",       31006));
+    mbcg.add_child(MenuData::new("Bobstones",       31007));
+    mbcg.add_child(MenuData::new("Bocce",           31008));
+    mbcg.add_child(MenuData::new("Boga II",         31009));
+    mbcg.add_child(MenuData::new("Bomb Run",        31010));
+
+    let bbcg = games.get_mut_child_by_id(3008).unwrap();
+
+    bbcg.add_child(MenuData::new("Cribbage",        32001));
+    bbcg.add_child(MenuData::new("Dukedom",         32002));
+    bbcg.add_child(MenuData::new("Eliza",           32003));
+    
 
     root_menu_obj.build();
 
