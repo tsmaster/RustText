@@ -161,6 +161,11 @@ impl <'a> MenuData<'a>{
         // TODO draw up/down prompts
     }
 
+    fn get_selected_index(&self) -> usize
+    {
+        self.cursor_y * self.viz_width + self.cursor_x
+    }
+
     fn on_up(&mut self) {
         println!("on up");
 
@@ -176,9 +181,17 @@ impl <'a> MenuData<'a>{
     fn on_down(&mut self) {
         println!("on down");
 
+        let old_y = self.cursor_y;
+
         self.cursor_y += 1;
         if self.cursor_y >= self.viz_height {
             self.cursor_y = self.viz_height - 1;
+        }
+
+        let new_index = self.get_selected_index();
+        if new_index >= self.child_keys.len()
+        {
+            self.cursor_y = old_y;
         }
     }
 
@@ -204,6 +217,16 @@ impl <'a> MenuData<'a>{
         // possibly indicate a new menu should be added?
 
         println!("Selecting a thing??");
+        let idx = self.get_selected_index();
+        println!("selection index: {0}", idx);
+        let child_name = self.child_keys[idx];
+        println!("selection name: {0}", child_name);
+        let child_menu = &self.child_menus[child_name];
+        if child_menu.is_leaf {
+            println!("child is leaf");
+        } else {
+            println!("child is not leaf");
+        }
     }
 
     fn on_cancel(&mut self) {
