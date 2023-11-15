@@ -121,7 +121,13 @@ impl <'a> MenuData<'a>{
         // TODO add menu colors
 
         // TODO move all of this into a panel
+
+        // TODO handle two+ column
+
+        // TODO handle scrolling
+
         
+        // draw items
         for i in 0 .. self.child_keys.len() {
             let cname = self.child_keys[i];
             draw_string(cname, WHITE,
@@ -132,7 +138,7 @@ impl <'a> MenuData<'a>{
 
             let cmo = &self.child_menus[cname];
             if !cmo.is_leaf {
-                draw_char('>', RED,
+                draw_char('>', GRAY,
                           x as f32 + (6 * (self.cell_width + 3)) as f32 * scale as f32,
                           (y + (8 * (i + 1) as u32 * scale)) as f32,
                           2,
@@ -140,6 +146,68 @@ impl <'a> MenuData<'a>{
             }
         }
 
+        // draw cursor
+
+        draw_char('>', RED,
+                  x as f32 +
+                  (1.0 + (self.cursor_x as f32 * (self.cell_width + 3) as f32)) *
+                  6.0 * scale as f32,
+                  y as f32 +
+                  (self.cursor_y + 1) as f32 *
+                  (8 * scale) as f32,
+                  2,
+                  texture, font_record);
+
+        // TODO draw up/down prompts
+    }
+
+    fn on_up(&mut self) {
+        println!("on up");
+
+        match self.cursor_y.checked_sub(1) {
+            Some(ny) => {
+                self.cursor_y = ny;
+            }
+            None => {
+            }
+        }
+    }
+
+    fn on_down(&mut self) {
+        println!("on down");
+
+        self.cursor_y += 1;
+        if self.cursor_y >= self.viz_height {
+            self.cursor_y = self.viz_height - 1;
+        }
+    }
+
+    fn on_left(&mut self) {
+        match self.cursor_x.checked_sub(1) {
+            Some(nx) => {
+                self.cursor_x = nx;
+            }
+            None => {
+            }
+        }
+    }
+
+    fn on_right(&mut self) {
+        self.cursor_x += 1;
+        if self.cursor_x >= self.viz_width {
+            self.cursor_x = self.viz_width - 1;
+        }
+    }
+
+    fn on_select(&mut self) {
+        // TODO possibly return an event?
+        // possibly indicate a new menu should be added?
+
+        println!("Selecting a thing??");
+    }
+
+    fn on_cancel(&mut self) {
+        // TODO is there cleanup to be done here?
     }
 
     fn new(new_name: &'a str, id: i32) -> MenuData<'a> {
@@ -196,6 +264,59 @@ impl <'a> MenuManager<'a> {
             tx = tx + x_spacing;
             ty = ty + y_spacing;
         }
+    }
+
+    fn get_top_menu(&mut self) -> Result<&mut MenuData<'a>, String>
+    {
+        if self.menu_stack.len() == 0
+        {
+            return Err("empty stack".to_string());
+        }
+
+        let index = self.menu_stack.len() - 1;
+        let mut md = self.menu_stack.get_mut(index);
+        match md {
+            None => { return Err("can't get menu item".to_string());}
+            Some(m) => { return Ok(m); }
+        }
+    }
+
+    fn on_up(&mut self) {
+        println!("up");
+
+        let mut md = self.get_top_menu().unwrap();
+        md.on_up();
+    }
+
+    fn on_down(&mut self) {
+        println!("down");
+        
+        let mut md = self.get_top_menu().unwrap();
+        md.on_down();
+    }
+
+    fn on_left(&mut self) {
+        let mut md = self.get_top_menu().unwrap();
+        md.on_left();
+    }
+
+    fn on_right(&mut self) {
+        let mut md = self.get_top_menu().unwrap();
+        md.on_right();
+    }
+
+    fn on_select(&mut self) {
+        let mut md = self.get_top_menu().unwrap();
+        md.on_select();
+
+        // might also need to push a new menu
+    }
+
+    fn on_cancel(&mut self) {
+        let mut md = self.get_top_menu().unwrap();
+        md.on_cancel();
+
+        // probably need to pop a menu
     }
 }
 
@@ -442,6 +563,27 @@ async fn main() {
     my_menu_mgr.open(&mut root_menu_obj);
 
     loop {
+        if is_key_pressed(KeyCode::Up) {
+            my_menu_mgr.on_up();
+        }
+        if is_key_pressed(KeyCode::Down) {
+            my_menu_mgr.on_down();
+        }
+        if is_key_pressed(KeyCode::Left) {
+            my_menu_mgr.on_left();
+        }
+        if is_key_pressed(KeyCode::Right) {
+            my_menu_mgr.on_right();
+        }
+        if is_key_pressed(KeyCode::Space) {
+            my_menu_mgr.on_select();
+        }
+        if is_key_pressed(KeyCode::Escape) {
+            my_menu_mgr.on_cancel();
+        }
+        
+        
+        
         clear_background(bg_color);
 
         draw_panel(&my_panel);
